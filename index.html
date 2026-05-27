@@ -93,6 +93,9 @@ main{padding:2rem;overflow-y:auto}
 .sub-add-row button:hover{background:var(--accent);color:#0e0e0e}
 .sub-del{background:transparent;border:none;color:var(--muted);font-size:12px;cursor:pointer;padding:0 3px;opacity:.4;transition:opacity .1s}
 .sub-del:hover{opacity:1;color:var(--danger)}
+.sub-copy{background:transparent;border:none;color:var(--muted);font-size:13px;cursor:pointer;padding:0 3px;opacity:.4;transition:all .1s}
+.sub-copy:hover{opacity:1;color:var(--accent)}
+.sub-copy.copied{color:var(--done);opacity:1}
 .badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:20px;letter-spacing:.04em;text-transform:uppercase;font-weight:500}
 .badge-done{background:var(--done-dim);color:var(--done)}
 .badge-todo{background:var(--accent-dim);color:var(--accent)}
@@ -625,6 +628,7 @@ function renderProject(){
               <svg class="sub-chk-svg" viewBox="0 0 7 6" fill="none"><path d="M1 3l2 2 3-4" stroke="#0e0e0e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </div>
             <span class="sub-name">${esc(s.name)}</span>
+            <button class="sub-copy" onclick="event.stopPropagation();copySub(this,\`${s.name.replace(/`/g,'\\`')}\`)" aria-label="copy" title="Copy">⎘</button>
             <button class="sub-del" onclick="event.stopPropagation();delSub('${t.id}','${s.id}')" aria-label="delete">✕</button>
           </div>`).join('')}
         <div class="sub-add-row">
@@ -649,6 +653,12 @@ function updateHeader(){
   document.getElementById('h-done').textContent=dn;
 }
 
+function copySub(btn,text){
+  navigator.clipboard.writeText(text).then(()=>{
+    btn.textContent='✓';btn.classList.add('copied');
+    setTimeout(()=>{btn.textContent='⎘';btn.classList.remove('copied');},1200);
+  });
+}
 document.getElementById('pname').addEventListener('keydown',e=>{if(e.key==='Enter')addProject();});
 document.getElementById('tname').addEventListener('keydown',e=>{if(e.key==='Enter')addTopic();});
 
