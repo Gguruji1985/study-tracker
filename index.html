@@ -3,713 +3,656 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Study Tracker</title>
+<title>study.track</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0e0e0e;
-    --surface: #161616;
-    --border: #2a2a2a;
-    --border-soft: #1e1e1e;
-    --text: #f0f0f0;
-    --muted: #666;
-    --dim: #333;
-    --accent: #c8f135;
-    --accent-dim: rgba(200,241,53,0.12);
-    --accent-text: #0e0e0e;
-    --done: #4ade80;
-    --done-dim: rgba(74,222,128,0.1);
-    --danger: #f87171;
-    --radius: 8px;
-    --mono: 'DM Mono', monospace;
-    --display: 'Syne', sans-serif;
-  }
-
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--mono);
-    font-size: 14px;
-    min-height: 100vh;
-    line-height: 1.6;
-  }
-
-  header {
-    border-bottom: 1px solid var(--border);
-    padding: 1.5rem 2rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    background: var(--bg);
-    z-index: 10;
-  }
-
-  header h1 {
-    font-family: var(--display);
-    font-size: 1.2rem;
-    font-weight: 800;
-    letter-spacing: -0.01em;
-    color: var(--text);
-  }
-
-  header h1 span { color: var(--accent); }
-
-  .header-stats {
-    display: flex;
-    gap: 1.5rem;
-    font-size: 12px;
-    color: var(--muted);
-  }
-
-  .header-stats strong { color: var(--accent); font-weight: 500; }
-
-  .layout {
-    display: grid;
-    grid-template-columns: 280px 1fr;
-    min-height: calc(100vh - 65px);
-  }
-
-  .sidebar {
-    border-right: 1px solid var(--border);
-    padding: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .sidebar-title {
-    font-size: 11px;
-    color: var(--muted);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    margin-bottom: 0.25rem;
-  }
-
-  .add-project-form {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  input, textarea {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    color: var(--text);
-    font-family: var(--mono);
-    font-size: 13px;
-    padding: 8px 10px;
-    width: 100%;
-    outline: none;
-    transition: border-color 0.15s;
-  }
-
-  input:focus, textarea:focus { border-color: var(--accent); }
-  input::placeholder, textarea::placeholder { color: var(--dim); }
-  textarea { resize: vertical; min-height: 60px; }
-
-  button {
-    font-family: var(--mono);
-    font-size: 13px;
-    cursor: pointer;
-    border: none;
-    border-radius: var(--radius);
-    padding: 8px 14px;
-    transition: all 0.15s;
-  }
-
-  .btn-accent {
-    background: var(--accent);
-    color: var(--accent-text);
-    font-weight: 500;
-    width: 100%;
-  }
-
-  .btn-accent:hover { background: #d4f54a; }
-
-  .btn-ghost {
-    background: transparent;
-    color: var(--muted);
-    border: 1px solid var(--border);
-    font-size: 12px;
-    padding: 5px 10px;
-  }
-
-  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
-
-  .btn-danger {
-    background: transparent;
-    color: var(--danger);
-    border: 1px solid transparent;
-    font-size: 12px;
-    padding: 4px 8px;
-    opacity: 0.6;
-  }
-
-  .btn-danger:hover { opacity: 1; border-color: var(--danger); }
-
-  .project-list {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    flex: 1;
-    overflow-y: auto;
-  }
-
-  .project-item {
-    padding: 10px 12px;
-    border-radius: var(--radius);
-    border: 1px solid transparent;
-    cursor: pointer;
-    transition: all 0.15s;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .project-item:hover { background: var(--surface); border-color: var(--border); }
-
-  .project-item.active {
-    background: var(--accent-dim);
-    border-color: var(--accent);
-  }
-
-  .project-item-name {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .project-item.active .project-item-name { color: var(--accent); }
-
-  .project-item-meta {
-    font-size: 11px;
-    color: var(--muted);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .mini-bar {
-    flex: 1;
-    height: 3px;
-    background: var(--border);
-    border-radius: 2px;
-    overflow: hidden;
-  }
-
-  .mini-bar-fill {
-    height: 100%;
-    background: var(--accent);
-    border-radius: 2px;
-    transition: width 0.3s;
-  }
-
-  .mini-bar-fill.complete { background: var(--done); }
-
-  .main {
-    padding: 2rem;
-    overflow-y: auto;
-  }
-
-  .empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 60vh;
-    gap: 1rem;
-    color: var(--muted);
-    text-align: center;
-  }
-
-  .empty-icon {
-    font-size: 3rem;
-    opacity: 0.2;
-    font-family: var(--display);
-    font-weight: 800;
-  }
-
-  .project-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    margin-bottom: 2rem;
-    gap: 1rem;
-  }
-
-  .project-name {
-    font-family: var(--display);
-    font-size: 2rem;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    line-height: 1.1;
-  }
-
-  .project-desc {
-    font-size: 13px;
-    color: var(--muted);
-    margin-top: 6px;
-    max-width: 500px;
-    line-height: 1.7;
-  }
-
-  .progress-section {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    margin-bottom: 2rem;
-  }
-
-  .stat-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1rem;
-  }
-
-  .stat-n {
-    font-family: var(--display);
-    font-size: 2rem;
-    font-weight: 800;
-    color: var(--accent);
-    line-height: 1;
-  }
-
-  .stat-n.done-color { color: var(--done); }
-
-  .stat-l {
-    font-size: 11px;
-    color: var(--muted);
-    margin-top: 4px;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
-
-  .progress-bar-big {
-    height: 6px;
-    background: var(--border);
-    border-radius: 3px;
-    margin-bottom: 2rem;
-    overflow: hidden;
-  }
-
-  .progress-bar-big-fill {
-    height: 100%;
-    background: var(--accent);
-    border-radius: 3px;
-    transition: width 0.4s ease;
-  }
-
-  .progress-bar-big-fill.complete { background: var(--done); }
-
-  .section-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1rem;
-  }
-
-  .section-label {
-    font-size: 11px;
-    color: var(--muted);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
-  .add-topic-row {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 1.5rem;
-    align-items: flex-start;
-  }
-
-  .add-topic-row input { flex: 1; }
-  .add-topic-row textarea { flex: 2; }
-  .add-topic-row button { white-space: nowrap; align-self: flex-start; margin-top: 0; }
-
-  .topics-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .topic-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 14px 16px;
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    transition: border-color 0.15s;
-    cursor: pointer;
-  }
-
-  .topic-card:hover { border-color: var(--dim); }
-
-  .topic-card.done {
-    background: var(--done-dim);
-    border-color: rgba(74,222,128,0.2);
-  }
-
-  .topic-check {
-    width: 18px;
-    height: 18px;
-    border: 1.5px solid var(--dim);
-    border-radius: 4px;
-    flex-shrink: 0;
-    margin-top: 2px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.15s;
-    cursor: pointer;
-  }
-
-  .topic-card.done .topic-check {
-    background: var(--done);
-    border-color: var(--done);
-  }
-
-  .topic-check-mark {
-    width: 10px;
-    height: 8px;
-    opacity: 0;
-    transition: opacity 0.15s;
-  }
-
-  .topic-card.done .topic-check-mark { opacity: 1; }
-
-  .topic-body { flex: 1; min-width: 0; }
-
-  .topic-name {
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text);
-    transition: color 0.15s;
-  }
-
-  .topic-card.done .topic-name {
-    color: var(--done);
-    text-decoration: line-through;
-    opacity: 0.7;
-  }
-
-  .topic-explanation {
-    font-size: 12px;
-    color: var(--muted);
-    margin-top: 4px;
-    line-height: 1.6;
-  }
-
-  .topic-card.done .topic-explanation { opacity: 0.5; }
-
-  .topic-actions { display: flex; gap: 4px; opacity: 0; transition: opacity 0.15s; }
-  .topic-card:hover .topic-actions { opacity: 1; }
-
-  .badge {
-    display: inline-block;
-    font-size: 10px;
-    padding: 2px 7px;
-    border-radius: 20px;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    font-weight: 500;
-  }
-
-  .badge-done { background: var(--done-dim); color: var(--done); }
-  .badge-todo { background: var(--accent-dim); color: var(--accent); }
-
-  .divider { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
-
-  @media (max-width: 700px) {
-    .layout { grid-template-columns: 1fr; }
-    .sidebar { border-right: none; border-bottom: 1px solid var(--border); }
-    .progress-section { grid-template-columns: 1fr 1fr; }
-    .add-topic-row { flex-direction: column; }
-    header { padding: 1rem; }
-    .main { padding: 1rem; }
-    .header-stats { display: none; }
-  }
+:root{--bg:#0e0e0e;--surface:#161616;--surface2:#1c1c1c;--border:#2a2a2a;--text:#f0f0f0;--muted:#666;--dim:#333;--accent:#c8f135;--accent-dim:rgba(200,241,53,0.1);--accent-mid:rgba(200,241,53,0.2);--done:#4ade80;--done-dim:rgba(74,222,128,0.08);--danger:#f87171;--r:8px;--mono:'DM Mono',monospace;--display:'Syne',sans-serif}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:14px;min-height:100vh;line-height:1.6}
+header{border-bottom:1px solid var(--border);padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg);z-index:10}
+header h1{font-family:var(--display);font-size:1.1rem;font-weight:800;letter-spacing:-0.01em}
+header h1 span{color:var(--accent)}
+.hstats{display:flex;gap:1.5rem;font-size:12px;color:var(--muted)}
+.hstats strong{color:var(--accent);font-weight:500}
+.layout{display:grid;grid-template-columns:270px 1fr;min-height:calc(100vh - 57px)}
+aside{border-right:1px solid var(--border);padding:1.25rem;display:flex;flex-direction:column;gap:1rem;overflow-y:auto}
+.slabel{font-size:10px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.25rem}
+input,textarea{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:var(--mono);font-size:13px;padding:7px 10px;width:100%;outline:none;transition:border-color .15s}
+input:focus,textarea:focus{border-color:var(--accent)}
+input::placeholder,textarea::placeholder{color:var(--dim)}
+textarea{resize:vertical;min-height:52px}
+button{font-family:var(--mono);font-size:13px;cursor:pointer;border:none;border-radius:var(--r);padding:7px 12px;transition:all .15s}
+.btn-accent{background:var(--accent);color:#0e0e0e;font-weight:500;width:100%}
+.btn-accent:hover{background:#d4f54a}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border);font-size:12px;padding:5px 10px}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn-del{background:transparent;color:var(--danger);border:1px solid transparent;font-size:11px;padding:3px 7px;opacity:.5}
+.btn-del:hover{opacity:1;border-color:var(--danger)}
+.proj-list{display:flex;flex-direction:column;gap:3px;flex:1;overflow-y:auto}
+.proj-item{padding:9px 11px;border-radius:var(--r);border:1px solid transparent;cursor:pointer;transition:all .15s}
+.proj-item:hover{background:var(--surface);border-color:var(--border)}
+.proj-item.active{background:var(--accent-dim);border-color:rgba(200,241,53,.3)}
+.proj-item-name{font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.proj-item.active .proj-item-name{color:var(--accent)}
+.proj-item-meta{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px;margin-top:3px}
+.mini-bar{flex:1;height:2px;background:var(--border);border-radius:2px;overflow:hidden}
+.mini-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .3s}
+.mini-fill.c{background:var(--done)}
+main{padding:2rem;overflow-y:auto}
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;gap:1rem;color:var(--muted);text-align:center}
+.empty-icon{font-family:var(--display);font-size:3rem;font-weight:800;opacity:.15}
+.proj-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.5rem;gap:1rem}
+.proj-name-big{font-family:var(--display);font-size:1.8rem;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.proj-desc-big{font-size:13px;color:var(--muted);margin-top:5px;max-width:500px}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.5rem}
+.scard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:.875rem}
+.sn{font-family:var(--display);font-size:1.6rem;font-weight:800;color:var(--accent);line-height:1}
+.sn.g{color:var(--done)}
+.sl{font-size:10px;color:var(--muted);margin-top:3px;letter-spacing:.04em;text-transform:uppercase}
+.big-bar{height:5px;background:var(--border);border-radius:3px;margin-bottom:1.75rem;overflow:hidden}
+.big-fill{height:100%;background:var(--accent);border-radius:3px;transition:width .4s ease}
+.big-fill.c{background:var(--done)}
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:.875rem}
+.add-row{display:flex;gap:8px;margin-bottom:1.5rem;align-items:flex-start}
+.add-row input{flex:1}
+.add-row textarea{flex:2;min-height:36px}
+.add-row button{white-space:nowrap;width:auto}
+.topics-list{display:flex;flex-direction:column;gap:6px}
+.topic-block{border:1px solid var(--border);border-radius:var(--r);background:var(--surface);overflow:hidden;transition:border-color .15s}
+.topic-block:hover{border-color:var(--dim)}
+.topic-block.done-block{background:var(--done-dim);border-color:rgba(74,222,128,.15)}
+.topic-row{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;user-select:none}
+.check{width:17px;height:17px;border:1.5px solid var(--dim);border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.done-block .check{background:var(--done);border-color:var(--done)}
+.chk-svg{width:9px;height:7px;opacity:0;transition:opacity .15s}
+.done-block .chk-svg{opacity:1}
+.topic-info{flex:1;min-width:0}
+.topic-title{font-size:13px;font-weight:500;color:var(--text);transition:color .15s}
+.done-block .topic-title{color:var(--done);text-decoration:line-through;opacity:.7}
+.topic-sub-count{font-size:11px;color:var(--muted);margin-top:2px}
+.topic-right{display:flex;align-items:center;gap:8px;margin-left:auto}
+.topic-pct{font-size:11px;color:var(--muted);min-width:30px;text-align:right}
+.done-block .topic-pct{color:var(--done)}
+.expand-btn{font-size:10px;color:var(--muted);background:transparent;border:none;padding:2px 5px;cursor:pointer;transition:transform .2s}
+.expand-btn.open{transform:rotate(90deg)}
+.subtopics-panel{border-top:1px solid var(--border);padding:10px 14px;display:flex;flex-direction:column;gap:5px}
+.done-block .subtopics-panel{border-top-color:rgba(74,222,128,.15)}
+.sub-item{display:flex;align-items:center;gap:9px;padding:5px 6px;border-radius:6px;cursor:pointer;transition:background .1s}
+.sub-item:hover{background:var(--surface2)}
+.done-block .sub-item:hover{background:rgba(74,222,128,.05)}
+.sub-check{width:14px;height:14px;border:1.5px solid var(--dim);border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.sub-item.sdone .sub-check{background:var(--done);border-color:var(--done)}
+.sub-chk-svg{width:7px;height:6px;opacity:0;transition:opacity .15s}
+.sub-item.sdone .sub-chk-svg{opacity:1}
+.sub-name{font-size:12px;color:var(--text);flex:1}
+.sub-item.sdone .sub-name{text-decoration:line-through;opacity:.45;color:var(--done)}
+.sub-add-row{display:flex;gap:6px;margin-top:6px}
+.sub-add-row input{flex:1;font-size:12px;padding:5px 8px}
+.sub-add-row button{font-size:12px;padding:5px 10px;width:auto;background:var(--accent-mid);border:1px solid rgba(200,241,53,.3);color:var(--accent);border-radius:6px}
+.sub-add-row button:hover{background:var(--accent);color:#0e0e0e}
+.sub-del{background:transparent;border:none;color:var(--muted);font-size:12px;cursor:pointer;padding:0 3px;opacity:.4;transition:opacity .1s}
+.sub-del:hover{opacity:1;color:var(--danger)}
+.badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:20px;letter-spacing:.04em;text-transform:uppercase;font-weight:500}
+.badge-done{background:var(--done-dim);color:var(--done)}
+.badge-todo{background:var(--accent-dim);color:var(--accent)}
+.divider{border:none;border-top:1px solid var(--border);margin:.75rem 0}
+.t-actions{display:flex;gap:4px;opacity:0;transition:opacity .15s}
+.topic-row:hover .t-actions{opacity:1}
+@media(max-width:700px){.layout{grid-template-columns:1fr}aside{border-right:none;border-bottom:1px solid var(--border)}.stats-row{grid-template-columns:1fr 1fr}header{padding:.875rem 1rem}.hstats{display:none}main{padding:1rem}}
 </style>
 </head>
 <body>
-
 <header>
   <h1>study<span>.</span>track</h1>
-  <div class="header-stats">
-    <span>projects: <strong id="hdr-projects">0</strong></span>
-    <span>topics done: <strong id="hdr-done">0</strong>/<strong id="hdr-total">0</strong></span>
+  <div class="hstats">
+    <span>projects: <strong id="h-proj">0</strong></span>
+    <span>subtopics: <strong id="h-done">0</strong>/<strong id="h-total">0</strong></span>
   </div>
 </header>
-
 <div class="layout">
-  <aside class="sidebar">
+  <aside>
     <div>
-      <div class="sidebar-title">New project</div>
-      <div class="add-project-form">
-        <input type="text" id="proj-name" placeholder="Project name" maxlength="60">
-        <textarea id="proj-desc" placeholder="What is this project? (optional)" rows="2"></textarea>
+      <div class="slabel">New project</div>
+      <div style="display:flex;flex-direction:column;gap:7px">
+        <input type="text" id="pname" placeholder="Project name" maxlength="60">
+        <textarea id="pdesc" placeholder="Description (optional)" rows="2"></textarea>
         <button class="btn-accent" onclick="addProject()">+ Add project</button>
       </div>
     </div>
     <hr class="divider" style="margin:0">
-    <div>
-      <div class="sidebar-title">Projects</div>
-      <div class="project-list" id="project-list">
-      </div>
+    <div style="display:flex;flex-direction:column;gap:.4rem;flex:1;overflow:hidden">
+      <div class="slabel">Projects</div>
+      <div class="proj-list" id="proj-list"></div>
     </div>
   </aside>
-
-  <main class="main" id="main-panel">
-    <div class="empty-state" id="empty-state">
+  <main id="main">
+    <div class="empty" id="empty">
       <div class="empty-icon">{ }</div>
-      <div>
-        <div style="font-size:15px;color:var(--text);margin-bottom:6px;">No project selected</div>
-        <div>Create a project and add what you need to study.</div>
-      </div>
+      <div><div style="font-size:15px;color:var(--text);margin-bottom:5px">No project selected</div><div>Pick a project from the sidebar.</div></div>
     </div>
-
-    <div id="project-view" style="display:none;">
-      <div class="project-header">
+    <div id="pview" style="display:none">
+      <div class="proj-hdr">
         <div>
-          <div class="project-name" id="view-name"></div>
-          <div class="project-desc" id="view-desc"></div>
+          <div class="proj-name-big" id="v-name"></div>
+          <div class="proj-desc-big" id="v-desc"></div>
         </div>
-        <div style="display:flex;gap:6px;align-items:center;">
-          <span id="view-badge" class="badge"></span>
-          <button class="btn-danger" onclick="deleteProject()">delete</button>
-        </div>
-      </div>
-
-      <div class="progress-section">
-        <div class="stat-card">
-          <div class="stat-n" id="stat-total">0</div>
-          <div class="stat-l">Topics total</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-n done-color" id="stat-done">0</div>
-          <div class="stat-l">Completed</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-n" id="stat-pct">0%</div>
-          <div class="stat-l">Progress</div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <span id="v-badge" class="badge"></span>
+          <button class="btn-del" onclick="delProject()">delete</button>
         </div>
       </div>
-
-      <div class="progress-bar-big">
-        <div class="progress-bar-big-fill" id="big-bar" style="width:0%"></div>
+      <div class="stats-row">
+        <div class="scard"><div class="sn" id="s-topics">0</div><div class="sl">Topics</div></div>
+        <div class="scard"><div class="sn" id="s-sub">0</div><div class="sl">Subtopics</div></div>
+        <div class="scard"><div class="sn g" id="s-done">0</div><div class="sl">Completed</div></div>
+        <div class="scard"><div class="sn" id="s-pct">0%</div><div class="sl">Progress</div></div>
       </div>
-
-      <div class="section-header">
-        <span class="section-label">Study topics</span>
+      <div class="big-bar"><div class="big-fill" id="big-fill" style="width:0%"></div></div>
+      <div class="sec-hdr">
+        <span class="slabel">Topics</span>
         <button class="btn-ghost" onclick="clearDone()">clear done</button>
       </div>
-
-      <div class="add-topic-row">
-        <input type="text" id="topic-name" placeholder="Topic name (e.g. Linked lists)" style="flex:1">
-        <textarea id="topic-exp" placeholder="Why you need it / what to study" rows="1" style="flex:2;min-height:36px;"></textarea>
-        <button class="btn-accent" style="width:auto;" onclick="addTopic()">+ Add</button>
+      <div class="add-row">
+        <input type="text" id="tname" placeholder="Topic name">
+        <textarea id="texp" placeholder="Why / what to study" rows="1" style="min-height:36px;flex:2"></textarea>
+        <button class="btn-accent" onclick="addTopic()">+ Add</button>
       </div>
-
-      <div class="topics-grid" id="topics-grid"></div>
-
-      <div id="no-topics" style="color:var(--muted);font-size:13px;padding:2rem 0;display:none;">
-        No topics yet — add what you need to study for this project.
-      </div>
+      <div class="topics-list" id="topics-list"></div>
+      <div id="no-topics" style="color:var(--muted);font-size:13px;padding:2rem 0;display:none">No topics yet.</div>
     </div>
   </main>
 </div>
-
 <script>
-let data = JSON.parse(localStorage.getItem('study-tracker-v1') || '{"projects":[]}');
-let activeId = null;
+const DEFAULT = {projects:[
+{id:"pre",name:"Pre-uni prep",desc:"Now → Sept 2026. Prepare for TOLC-I and first year.",topics:[
+{id:"t1",name:"TOLC-I Matematica",exp:"20 domande, la sezione più pesante del test.",subtopics:[
+{id:"s1",name:"Equazioni e disequazioni di 1° e 2° grado",done:false},
+{id:"s2",name:"Sistemi di equazioni lineari",done:false},
+{id:"s3",name:"Trigonometria (sin, cos, tan, identità)",done:false},
+{id:"s4",name:"Logaritmi ed esponenziali",done:false},
+{id:"s5",name:"Geometria analitica (retta, parabola, cerchio)",done:false},
+{id:"s6",name:"Limiti — concetto base",done:false},
+{id:"s7",name:"Derivate — concetto base",done:false},
+{id:"s8",name:"Calcolo combinatorio e probabilità base",done:false}
+]},
+{id:"t2",name:"TOLC-I Fisica (Scienze)",exp:"~70% fisica, 30% chimica. 10 domande.",subtopics:[
+{id:"s9",name:"Cinematica e moto uniformemente accelerato",done:false},
+{id:"s10",name:"Leggi di Newton",done:false},
+{id:"s11",name:"Lavoro, energia, potenza",done:false},
+{id:"s12",name:"Quantità di moto e urti",done:false},
+{id:"s13",name:"Elettrostatica base (Coulomb, campo elettrico)",done:false},
+{id:"s14",name:"Circuiti elettrici semplici (Ohm, Kirchhoff)",done:false},
+{id:"s15",name:"Chimica: stechiometria e legami base",done:false}
+]},
+{id:"t3",name:"TOLC-I Logica",exp:"Attitudinale, non serve studiare formule. Solo allenamento.",subtopics:[
+{id:"s16",name:"Ragionamento deduttivo",done:false},
+{id:"s17",name:"Insiemi e relazioni",done:false},
+{id:"s18",name:"Problemi quantitativi",done:false},
+{id:"s19",name:"Sequenze e pattern",done:false},
+{id:"s20",name:"10 simulazioni di logica su cisiaonline.it",done:false}
+]},
+{id:"t4",name:"Programmazione C (base)",exp:"Fondamentale per il primo esame di Fondamenti di Informatica.",subtopics:[
+{id:"s21",name:"Tipi di dato, variabili, operatori",done:false},
+{id:"s22",name:"Controllo di flusso (if, for, while, switch)",done:false},
+{id:"s23",name:"Funzioni e scope",done:false},
+{id:"s24",name:"Ricorsione",done:false},
+{id:"s25",name:"Array e stringhe",done:false},
+{id:"s26",name:"Puntatori e gestione della memoria",done:false},
+{id:"s27",name:"Struct e file I/O base",done:false}
+]},
+{id:"t5",name:"Simulazioni TOLC-I",exp:"Fai almeno 3 simulazioni complete cronometrate prima di settembre.",subtopics:[
+{id:"s28",name:"Registrazione su cisiaonline.it",done:false},
+{id:"s29",name:"Simulazione 1 — analisi errori",done:false},
+{id:"s30",name:"Simulazione 2 — analisi errori",done:false},
+{id:"s31",name:"Simulazione 3 — analisi errori",done:false},
+{id:"s32",name:"Prenota sessione TOLC-I ufficiale",done:false}
+]},
+{id:"t6",name:"TryHackMe pre-uni",exp:"Raggiungi rank Hacker prima di entrare all'università.",subtopics:[
+{id:"s33",name:"Completa path: Pre-Security",done:false},
+{id:"s34",name:"Completa path: Networking",done:false},
+{id:"s35",name:"Completa path: Linux Fundamentals",done:false},
+{id:"s36",name:"Completa path: Web Fundamentals",done:false},
+{id:"s37",name:"Raggiungi rank Hacker",done:false},
+{id:"s38",name:"Registrati a CyberChallenge.IT (UniNa)",done:false}
+]}
+]},
+{id:"y1",name:"Anno 1 — Fondamenti (2026/27)",desc:"Il più duro. Tutta matematica e fisica. Non arrenderti.",topics:[
+{id:"t10",name:"Analisi Matematica I",exp:"9 CFU. Base di tutto. Dedicaci più tempo di qualsiasi altro esame.",subtopics:[
+{id:"a1",name:"Insiemi, numeri reali, estremo superiore e inferiore",done:false},
+{id:"a2",name:"Successioni: limiti, teoremi, criteri di convergenza",done:false},
+{id:"a3",name:"Serie numeriche: convergenza, criteri (confronto, rapporto, radice)",done:false},
+{id:"a4",name:"Limiti di funzioni e continuità",done:false},
+{id:"a5",name:"Derivate: definizione, regole, derivate di funzioni elementari",done:false},
+{id:"a6",name:"Teoremi fondamentali (Rolle, Lagrange, Cauchy, de l'Hôpital)",done:false},
+{id:"a7",name:"Studio di funzione completo",done:false},
+{id:"a8",name:"Integrali indefiniti: metodi di integrazione",done:false},
+{id:"a9",name:"Integrali definiti: teorema fondamentale del calcolo",done:false},
+{id:"a10",name:"Integrali impropri",done:false},
+{id:"a11",name:"Sviluppi di Taylor e McLaurin",done:false}
+]},
+{id:"t11",name:"Fisica Generale I",exp:"9 CFU. Meccanica classica completa.",subtopics:[
+{id:"b1",name:"Vettori, cinematica del punto materiale",done:false},
+{id:"b2",name:"Leggi di Newton, forze, attrito",done:false},
+{id:"b3",name:"Lavoro, energia cinetica, energia potenziale",done:false},
+{id:"b4",name:"Conservazione dell'energia e della quantità di moto",done:false},
+{id:"b5",name:"Sistemi di particelle, centro di massa",done:false},
+{id:"b6",name:"Corpo rigido: rotazione, momento di inerzia",done:false},
+{id:"b7",name:"Momento angolare, forze centrali",done:false},
+{id:"b8",name:"Oscillazioni armoniche e smorzate",done:false},
+{id:"b9",name:"Gravitazione universale",done:false},
+{id:"b10",name:"Fluidostatica e fluidodinamica base",done:false}
+]},
+{id:"t12",name:"Fondamenti di Informatica",exp:"9 CFU. Algoritmi, strutture dati, complessità.",subtopics:[
+{id:"c1",name:"Architettura di von Neumann, rappresentazione informazione",done:false},
+{id:"c2",name:"Algoritmi: definizione, proprietà, pseudocodice",done:false},
+{id:"c3",name:"Analisi della complessità: O-notation",done:false},
+{id:"c4",name:"Array, liste concatenate, pile, code",done:false},
+{id:"c5",name:"Alberi: binari, BST, visite",done:false},
+{id:"c6",name:"Algoritmi di ordinamento (bubble, merge, quick)",done:false},
+{id:"c7",name:"Algoritmi di ricerca (lineare, binaria)",done:false},
+{id:"c8",name:"Grafi: rappresentazione, BFS, DFS",done:false},
+{id:"c9",name:"Ricorsione avanzata",done:false}
+]},
+{id:"t13",name:"Lingua Inglese B2",exp:"3 CFU. Necessario per superare il requisito linguistico.",subtopics:[
+{id:"d1",name:"Grammar review (tenses, conditionals, passive)",done:false},
+{id:"d2",name:"Reading comprehension — testi tecnici",done:false},
+{id:"d3",name:"Vocabulary tecnico informatico",done:false},
+{id:"d4",name:"Past exam papers B2",done:false}
+]},
+{id:"t14",name:"Analisi Matematica II",exp:"9 CFU. Funzioni di più variabili, equazioni differenziali.",subtopics:[
+{id:"e1",name:"Funzioni di più variabili: domini, curve di livello",done:false},
+{id:"e2",name:"Derivate parziali, gradiente, differenziale",done:false},
+{id:"e3",name:"Ottimizzazione libera (punti critici, hessiana)",done:false},
+{id:"e4",name:"Ottimizzazione vincolata (moltiplicatori di Lagrange)",done:false},
+{id:"e5",name:"Integrali doppi e tripli",done:false},
+{id:"e6",name:"Integrali di linea e di superficie",done:false},
+{id:"e7",name:"Teoremi di Green, Gauss, Stokes",done:false},
+{id:"e8",name:"EDO del 1° ordine (separabili, lineari)",done:false},
+{id:"e9",name:"EDO del 2° ordine a coefficienti costanti",done:false}
+]},
+{id:"t15",name:"Fisica Generale II",exp:"6 CFU. Elettromagnetismo.",subtopics:[
+{id:"f1",name:"Elettrostatica: legge di Coulomb, campo e potenziale",done:false},
+{id:"f2",name:"Condensatori, dielettrici, energia del campo",done:false},
+{id:"f3",name:"Corrente elettrica, resistenza, legge di Ohm",done:false},
+{id:"f4",name:"Circuiti RC e RL in transitorio",done:false},
+{id:"f5",name:"Campo magnetico: Biot-Savart, Ampere",done:false},
+{id:"f6",name:"Forza di Lorentz, moto di cariche",done:false},
+{id:"f7",name:"Induzione elettromagnetica, legge di Faraday",done:false},
+{id:"f8",name:"Equazioni di Maxwell",done:false},
+{id:"f9",name:"Onde elettromagnetiche",done:false}
+]},
+{id:"t16",name:"Geometria e Algebra",exp:"9 CFU. Algebra lineare completa.",subtopics:[
+{id:"g1",name:"Vettori, spazi vettoriali, basi",done:false},
+{id:"g2",name:"Operazioni tra matrici",done:false},
+{id:"g3",name:"Sistemi lineari: metodo di Gauss",done:false},
+{id:"g4",name:"Determinanti e teorema di Cramer",done:false},
+{id:"g5",name:"Autovalori e autovettori",done:false},
+{id:"g6",name:"Diagonalizzazione",done:false},
+{id:"g7",name:"Trasformazioni lineari",done:false},
+{id:"g8",name:"Prodotto scalare, ortogonalità, Gram-Schmidt",done:false}
+]},
+{id:"t17",name:"Calcolatori Elettronici",exp:"9 CFU. Come funziona un computer a livello hardware.",subtopics:[
+{id:"h1",name:"Algebra booleana e porte logiche",done:false},
+{id:"h2",name:"Reti combinatorie (MUX, decoder, adder)",done:false},
+{id:"h3",name:"Reti sequenziali (flip-flop, registri, contatori)",done:false},
+{id:"h4",name:"Architettura CPU: ALU, registri, bus, control unit",done:false},
+{id:"h5",name:"Instruction Set Architecture (ISA), Assembly base",done:false},
+{id:"h6",name:"Gerarchia di memoria: cache, RAM, disco",done:false},
+{id:"h7",name:"Pipeline e parallelismo a livello di istruzione",done:false},
+{id:"h8",name:"I/O, interrupt, DMA",done:false}
+]}
+]},
+{id:"y2",name:"Anno 2 — Core Informatico (2027/28)",desc:"Diventa tutto più interessante. Programmazione seria, sistemi, reti.",topics:[
+{id:"t20",name:"Metodi Matematici per l'Ingegneria",exp:"9 CFU. Trasformate, probabilità, processi.",subtopics:[
+{id:"m1",name:"Numeri complessi e funzioni di variabile complessa",done:false},
+{id:"m2",name:"Trasformata di Fourier (continua e discreta)",done:false},
+{id:"m3",name:"Trasformata di Laplace e sue proprietà",done:false},
+{id:"m4",name:"Calcolo delle probabilità: spazi campionari, eventi",done:false},
+{id:"m5",name:"Variabili aleatorie: discrete e continue, distribuzioni",done:false},
+{id:"m6",name:"Statistica descrittiva e inferenziale",done:false},
+{id:"m7",name:"Processi stocastici base",done:false}
+]},
+{id:"t21",name:"Fondamenti di Circuiti",exp:"9 CFU. Analisi circuiti elettrici.",subtopics:[
+{id:"ci1",name:"Leggi di Kirchhoff (KCL e KVL)",done:false},
+{id:"ci2",name:"Analisi nodale e a maglie",done:false},
+{id:"ci3",name:"Teoremi: Thevenin, Norton, sovrapposizione",done:false},
+{id:"ci4",name:"Circuiti RC, RL, RLC: risposta transitoria",done:false},
+{id:"ci5",name:"Regime sinusoidale e fasori",done:false},
+{id:"ci6",name:"Potenza in AC, fattore di potenza",done:false},
+{id:"ci7",name:"Circuiti a due porte",done:false}
+]},
+{id:"t22",name:"Teoria dei Segnali",exp:"9 CFU. Elaborazione e analisi dei segnali.",subtopics:[
+{id:"sg1",name:"Segnali continui e discreti, classificazione",done:false},
+{id:"sg2",name:"Sistemi LTI: risposta impulsiva, convoluzione",done:false},
+{id:"sg3",name:"Trasformata di Fourier per segnali",done:false},
+{id:"sg4",name:"Teorema del campionamento di Nyquist",done:false},
+{id:"sg5",name:"Filtraggio ideale e reale",done:false},
+{id:"sg6",name:"Modulazione AM e FM",done:false},
+{id:"sg7",name:"Trasformata Z",done:false}
+]},
+{id:"t23",name:"Programmazione",exp:"9 CFU. OOP avanzata, strutture dati, algoritmi su grafi.",subtopics:[
+{id:"pr1",name:"OOP: classi, ereditarietà, polimorfismo, interfacce",done:false},
+{id:"pr2",name:"Java o C++: eccezioni, generics, collections",done:false},
+{id:"pr3",name:"Strutture dati avanzate: heap, hash table, alberi bilanciati",done:false},
+{id:"pr4",name:"Algoritmi su grafi: Dijkstra, Prim, Kruskal",done:false},
+{id:"pr5",name:"Dynamic programming",done:false},
+{id:"pr6",name:"Complessità computazionale: P, NP, riduzioni",done:false},
+{id:"pr7",name:"Design patterns: singleton, observer, factory, MVC",done:false}
+]},
+{id:"t24",name:"Teoria dei Sistemi",exp:"9 CFU. Controllo automatico, sistemi dinamici.",subtopics:[
+{id:"ts1",name:"Modelli a spazio di stato",done:false},
+{id:"ts2",name:"Funzioni di trasferimento",done:false},
+{id:"ts3",name:"Risposta libera e forzata",done:false},
+{id:"ts4",name:"Stabilità: criteri di Lyapunov, Routh-Hurwitz",done:false},
+{id:"ts5",name:"Diagrammi di Bode",done:false},
+{id:"ts6",name:"Sistemi in retroazione, controllori PID",done:false},
+{id:"ts7",name:"Margine di fase e guadagno",done:false}
+]},
+{id:"t25",name:"Elettronica I",exp:"9 CFU. Semiconduttori, transistor, amplificatori.",subtopics:[
+{id:"el1",name:"Semiconduttori: drogaggio, giunzione p-n",done:false},
+{id:"el2",name:"Diodi: caratteristica, circuiti con diodi",done:false},
+{id:"el3",name:"Transistor BJT: polarizzazione e modelli small-signal",done:false},
+{id:"el4",name:"Transistor MOSFET: funzionamento e circuiti",done:false},
+{id:"el5",name:"Amplificatori a stadio singolo",done:false},
+{id:"el6",name:"Op-amp: circuiti base (invertente, sommatore, integratore)",done:false},
+{id:"el7",name:"Circuiti digitali CMOS, porte logiche fisiche",done:false}
+]}
+]},
+{id:"y3",name:"Anno 3 — Specializzazione (2028/29)",desc:"Punta su sicurezza e reti per il tuo obiettivo OT/ICS.",topics:[
+{id:"t30",name:"Reti di Calcolatori",exp:"9 CFU. Direttamente utile per OT/ICS security.",subtopics:[
+{id:"n1",name:"Modello OSI e stack TCP/IP",done:false},
+{id:"n2",name:"Livello fisico: mezzi trasmissivi, codifiche",done:false},
+{id:"n3",name:"Data link: Ethernet, MAC, switch, STP",done:false},
+{id:"n4",name:"IPv4 e IPv6: indirizzamento, subnetting, CIDR",done:false},
+{id:"n5",name:"Routing: statico, RIP, OSPF, BGP",done:false},
+{id:"n6",name:"TCP e UDP: controllo flusso, congestione, three-way handshake",done:false},
+{id:"n7",name:"Protocolli applicativi: HTTP/S, DNS, DHCP, FTP, SMTP",done:false},
+{id:"n8",name:"Firewall, NAT, VPN, TLS/SSL",done:false},
+{id:"n9",name:"Reti wireless: 802.11, sicurezza Wi-Fi",done:false},
+{id:"n10",name:"Sniffing con Wireshark, analisi pacchetti",done:false}
+]},
+{id:"t31",name:"Sistemi Operativi",exp:"9 CFU. Fondamentale per capire la sicurezza a basso livello.",subtopics:[
+{id:"o1",name:"Processi e thread: creazione, stati, PCB",done:false},
+{id:"o2",name:"Scheduling: algoritmi (FCFS, SJF, Round Robin, priorità)",done:false},
+{id:"o3",name:"Sincronizzazione: mutex, semafori, monitor",done:false},
+{id:"o4",name:"Deadlock: prevenzione, rilevamento, recovery",done:false},
+{id:"o5",name:"Memoria virtuale: paging, TLB, page fault",done:false},
+{id:"o6",name:"File system: strutture, journaling, permessi UNIX",done:false},
+{id:"o7",name:"Sicurezza del SO: privilegi, syscall, exploit base (buffer overflow)",done:false},
+{id:"o8",name:"Laboratorio Linux: bash avanzato, proc, /sys",done:false}
+]},
+{id:"t32",name:"Basi di Dati",exp:"9 CFU. Già conosci MySQL dal progetto Biblioteca.",subtopics:[
+{id:"db1",name:"Modello entità-relazione (ER)",done:false},
+{id:"db2",name:"Modello relazionale e algebra relazionale",done:false},
+{id:"db3",name:"Normalizzazione: 1NF, 2NF, 3NF, BCNF",done:false},
+{id:"db4",name:"SQL: DDL, DML, query complesse, JOIN, subquery",done:false},
+{id:"db5",name:"Transazioni e proprietà ACID",done:false},
+{id:"db6",name:"Indici e ottimizzazione delle query",done:false},
+{id:"db7",name:"NoSQL: documentale (MongoDB), key-value, graph",done:false}
+]},
+{id:"t33",name:"Sicurezza Informatica",exp:"9 CFU. Esame chiave per OT/ICS. Studia come fosse il più importante.",subtopics:[
+{id:"sec1",name:"Crittografia simmetrica: AES, DES, modalità operative",done:false},
+{id:"sec2",name:"Crittografia asimmetrica: RSA, ECC, scambio chiavi",done:false},
+{id:"sec3",name:"PKI, certificati X.509, TLS handshake",done:false},
+{id:"sec4",name:"Vulnerabilità web: OWASP Top 10 (SQLi, XSS, CSRF...)",done:false},
+{id:"sec5",name:"Vulnerabilità di sistema: buffer overflow, ROP, privilege escalation",done:false},
+{id:"sec6",name:"Protocolli OT/ICS: Modbus, DNP3, IEC 61850, Profinet",done:false},
+{id:"sec7",name:"Sicurezza SCADA: architettura, threat modeling",done:false},
+{id:"sec8",name:"Analisi del traffico industriale con Wireshark",done:false},
+{id:"sec9",name:"Incident response e forensics base",done:false},
+{id:"sec10",name:"Framework: NIST, IEC 62443",done:false}
+]},
+{id:"t34",name:"Ingegneria del Software",exp:"9 CFU. Metodologie e architetture di sviluppo.",subtopics:[
+{id:"sw1",name:"Metodologie agili: Scrum, Kanban, sprint",done:false},
+{id:"sw2",name:"UML: use case, class diagram, sequence diagram",done:false},
+{id:"sw3",name:"Design patterns: GOF creazionali, strutturali, comportamentali",done:false},
+{id:"sw4",name:"Testing: unit test, integration test, TDD",done:false},
+{id:"sw5",name:"CI/CD: pipeline, GitHub Actions, Docker",done:false},
+{id:"sw6",name:"Architetture: microservizi, REST API, event-driven",done:false},
+{id:"sw7",name:"DevSecOps: SAST, DAST, dependency scanning",done:false}
+]},
+{id:"t35",name:"Tesi Triennale",exp:"9 CFU. Punta su un argomento OT/ICS security.",subtopics:[
+{id:"th1",name:"Scegli argomento (suggerito: sicurezza reti industriali)",done:false},
+{id:"th2",name:"Trova relatore al DIETI",done:false},
+{id:"th3",name:"Ricerca bibliografica (IEEE, ACM, Google Scholar)",done:false},
+{id:"th4",name:"Implementazione o sperimentazione",done:false},
+{id:"th5",name:"Scrittura tesi in LaTeX",done:false},
+{id:"th6",name:"Preparazione presentazione",done:false}
+]}
+]},
+{id:"cyber",name:"Cybersecurity & Extra (tutti gli anni)",desc:"Da fare in parallelo all'università. Non opzionale.",topics:[
+{id:"t40",name:"eJPT Certification (Anno 1)",exp:"INE Security. ~100€. Primo certificato offensivo.",subtopics:[
+{id:"ej1",name:"Networking concepts (TCP/IP, subnetting)",done:false},
+{id:"ej2",name:"Web application basics (HTTP, OWASP)",done:false},
+{id:"ej3",name:"Host-based attacks (Windows, Linux)",done:false},
+{id:"ej4",name:"Network-based attacks (Nmap, Metasploit base)",done:false},
+{id:"ej5",name:"Esame pratico — 72 ore",done:false}
+]},
+{id:"t41",name:"CyberChallenge.IT",exp:"Programma nazionale UniNa. Candidati ogni feb-marzo.",subtopics:[
+{id:"cc1",name:"Registrazione (feb-mar, apertura selezioni)",done:false},
+{id:"cc2",name:"Training modules online",done:false},
+{id:"cc3",name:"CTF locali a Federico II",done:false},
+{id:"cc4",name:"Selezione nazionale",done:false}
+]},
+{id:"t42",name:"CCNA (se non ancora fatto)",exp:"Cisco 200-301. Rafforza la base di networking.",subtopics:[
+{id:"cn1",name:"Network fundamentals (modello OSI, TCP/IP, cabling)",done:false},
+{id:"cn2",name:"Network access (switching, VLANs, STP, EtherChannel)",done:false},
+{id:"cn3",name:"IP connectivity (static routing, OSPF)",done:false},
+{id:"cn4",name:"IP services (DHCP, DNS, NAT, NTP, SNMP)",done:false},
+{id:"cn5",name:"Security fundamentals (ACL, port security, VPN base)",done:false},
+{id:"cn6",name:"Automation (Python NetMiko, Ansible base, REST API)",done:false},
+{id:"cn7",name:"Esame Cisco 200-301",done:false}
+]},
+{id:"t43",name:"TryHackMe — Percorso avanzato",exp:"Continua da dove sei. Punta ai path offensivi.",subtopics:[
+{id:"th1x",name:"Jr Penetration Tester path",done:false},
+{id:"th2x",name:"SOC Level 1 path",done:false},
+{id:"th3x",name:"Red Teaming fundamentals",done:false},
+{id:"th4x",name:"Rooms specifiche OT/ICS",done:false},
+{id:"th5x",name:"CTF machine (HackTheBox Retired boxes)",done:false}
+]},
+{id:"t44",name:"GICSP Prep (obiettivo magistrale)",exp:"Global Industrial Cyber Security Professional. Certificazione ICS/OT più rilevante.",subtopics:[
+{id:"gc1",name:"ICS/SCADA fundamentals: PLC, HMI, RTU, DCS",done:false},
+{id:"gc2",name:"Protocolli industriali: Modbus TCP/RTU, DNP3, IEC 61850",done:false},
+{id:"gc3",name:"OT security architecture: Purdue model, DMZ industriale",done:false},
+{id:"gc4",name:"Threat modeling per sistemi industriali",done:false},
+{id:"gc5",name:"Incident response per ICS",done:false},
+{id:"gc6",name:"Framework IEC 62443 e NIST SP 800-82",done:false},
+{id:"gc7",name:"Esame GICSP (115 domande, 3 ore)",done:false}
+]},
+{id:"t45",name:"Stage & Portfolio",exp:"Il portfolio GitHub + uno stage sono più importanti del voto.",subtopics:[
+{id:"st1",name:"Aggiorna README GitHub con tutti i progetti",done:false},
+{id:"st2",name:"Biblioteca Pitagora: mantienila viva e documentata",done:false},
+{id:"st3",name:"Crea write-up CTF su un blog/GitHub Pages",done:false},
+{id:"st4",name:"Candidatura Leonardo S.p.A. (stage ICS security)",done:false},
+{id:"st5",name:"Candidatura Accenture Security",done:false},
+{id:"st6",name:"Candidatura Deloitte Cyber (Operazione Talenti)",done:false},
+{id:"st7",name:"Candidatura Nozomi Networks",done:false}
+]}
+]}
+]};
 
-function save() {
-  localStorage.setItem('study-tracker-v1', JSON.stringify(data));
-  renderSidebar();
-  updateHeader();
+let data = JSON.parse(localStorage.getItem('st-v2') || 'null');
+if (!data) { data = JSON.parse(JSON.stringify(DEFAULT)); save(); }
+let active = null;
+
+function save(){ localStorage.setItem('st-v2', JSON.stringify(data)); renderSidebar(); updateHeader(); }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,5); }
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function addProject(){
+  const n=document.getElementById('pname').value.trim(); if(!n) return;
+  const d=document.getElementById('pdesc').value.trim();
+  data.projects.unshift({id:uid(),name:n,desc:d,topics:[]});
+  document.getElementById('pname').value=''; document.getElementById('pdesc').value='';
+  save(); selectProject(data.projects[0].id);
 }
 
-function uid() {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+function delProject(){
+  if(!active||!confirm('Delete?')) return;
+  data.projects=data.projects.filter(p=>p.id!==active);
+  active=null; save(); showEmpty();
 }
 
-function addProject() {
-  const name = document.getElementById('proj-name').value.trim();
-  if (!name) return;
-  const desc = document.getElementById('proj-desc').value.trim();
-  const p = { id: uid(), name, desc, topics: [], created: Date.now() };
-  data.projects.unshift(p);
-  document.getElementById('proj-name').value = '';
-  document.getElementById('proj-desc').value = '';
-  save();
-  selectProject(p.id);
+function selectProject(id){ active=id; renderSidebar(); renderProject(); }
+
+function addTopic(){
+  const n=document.getElementById('tname').value.trim(); if(!n||!active) return;
+  const e=document.getElementById('texp').value.trim();
+  const p=data.projects.find(p=>p.id===active); if(!p) return;
+  p.topics.push({id:uid(),name:n,exp:e,subtopics:[]});
+  document.getElementById('tname').value=''; document.getElementById('texp').value='';
+  save(); renderProject();
 }
 
-function deleteProject() {
-  if (!activeId) return;
-  if (!confirm('Delete this project?')) return;
-  data.projects = data.projects.filter(p => p.id !== activeId);
-  activeId = null;
-  save();
-  showEmpty();
+function delTopic(tid){
+  const p=data.projects.find(p=>p.id===active); if(!p) return;
+  p.topics=p.topics.filter(t=>t.id!==tid); save(); renderProject();
 }
 
-function selectProject(id) {
-  activeId = id;
-  renderSidebar();
+function addSubtopic(tid){
+  const inp=document.getElementById('si-'+tid); if(!inp) return;
+  const n=inp.value.trim(); if(!n) return;
+  const p=data.projects.find(p=>p.id===active); if(!p) return;
+  const t=p.topics.find(t=>t.id===tid); if(!t) return;
+  t.subtopics.push({id:uid(),name:n,done:false});
+  inp.value=''; save(); renderProject(); openTopic(tid);
+}
+
+function toggleSub(tid,sid){
+  const p=data.projects.find(p=>p.id===active); if(!p) return;
+  const t=p.topics.find(t=>t.id===tid); if(!t) return;
+  const s=t.subtopics.find(s=>s.id===sid); if(s) s.done=!s.done;
+  save(); renderProject(); openTopic(tid);
+}
+
+function delSub(tid,sid){
+  const p=data.projects.find(p=>p.id===active); if(!p) return;
+  const t=p.topics.find(t=>t.id===tid); if(!t) return;
+  t.subtopics=t.subtopics.filter(s=>s.id!==sid);
+  save(); renderProject(); openTopic(tid);
+}
+
+function clearDone(){
+  const p=data.projects.find(p=>p.id===active); if(!p) return;
+  p.topics.forEach(t=>{ t.subtopics=t.subtopics.filter(s=>!s.done); });
+  p.topics=p.topics.filter(t=>t.subtopics.length>0||true);
+  save(); renderProject();
+}
+
+const openTopics=new Set();
+function openTopic(tid){ openTopics.add(tid); }
+function toggleExpand(tid){
+  if(openTopics.has(tid)) openTopics.delete(tid); else openTopics.add(tid);
   renderProject();
 }
 
-function addTopic() {
-  const name = document.getElementById('topic-name').value.trim();
-  if (!name || !activeId) return;
-  const exp = document.getElementById('topic-exp').value.trim();
-  const proj = data.projects.find(p => p.id === activeId);
-  if (!proj) return;
-  proj.topics.push({ id: uid(), name, exp, done: false });
-  document.getElementById('topic-name').value = '';
-  document.getElementById('topic-exp').value = '';
-  save();
-  renderProject();
+function projStats(p){
+  let totalSub=0,doneSub=0;
+  p.topics.forEach(t=>{ totalSub+=t.subtopics.length; doneSub+=t.subtopics.filter(s=>s.done).length; });
+  const pct=totalSub?Math.round(doneSub/totalSub*100):0;
+  return {totalSub,doneSub,pct};
 }
 
-function toggleTopic(tid) {
-  const proj = data.projects.find(p => p.id === activeId);
-  if (!proj) return;
-  const t = proj.topics.find(t => t.id === tid);
-  if (t) t.done = !t.done;
-  save();
-  renderProject();
+function topicPct(t){
+  if(!t.subtopics.length) return 0;
+  return Math.round(t.subtopics.filter(s=>s.done).length/t.subtopics.length*100);
 }
 
-function deleteTopic(tid) {
-  const proj = data.projects.find(p => p.id === activeId);
-  if (!proj) return;
-  proj.topics = proj.topics.filter(t => t.id !== tid);
-  save();
-  renderProject();
-}
-
-function clearDone() {
-  const proj = data.projects.find(p => p.id === activeId);
-  if (!proj) return;
-  proj.topics = proj.topics.filter(t => !t.done);
-  save();
-  renderProject();
-}
-
-function renderSidebar() {
-  const list = document.getElementById('project-list');
-  if (!data.projects.length) {
-    list.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:8px 0;">No projects yet.</div>';
-    return;
-  }
-  list.innerHTML = data.projects.map(p => {
-    const total = p.topics.length;
-    const done = p.topics.filter(t => t.done).length;
-    const pct = total ? Math.round((done/total)*100) : 0;
-    const active = p.id === activeId ? ' active' : '';
-    return `<div class="project-item${active}" onclick="selectProject('${p.id}')">
-      <div class="project-item-name">${esc(p.name)}</div>
-      <div class="project-item-meta">
-        <span>${done}/${total}</span>
-        <div class="mini-bar"><div class="mini-bar-fill${pct===100?' complete':''}" style="width:${pct}%"></div></div>
-        <span>${pct}%</span>
-      </div>
+function renderSidebar(){
+  const el=document.getElementById('proj-list');
+  if(!data.projects.length){ el.innerHTML='<div style="color:var(--muted);font-size:12px;padding:6px 0">No projects yet.</div>'; return; }
+  el.innerHTML=data.projects.map(p=>{
+    const {doneSub,totalSub,pct}=projStats(p);
+    return `<div class="proj-item${p.id===active?' active':''}" onclick="selectProject('${p.id}')">
+      <div class="proj-item-name">${esc(p.name)}</div>
+      <div class="proj-item-meta"><span>${doneSub}/${totalSub}</span><div class="mini-bar"><div class="mini-fill${pct===100?' c':''}" style="width:${pct}%"></div></div><span>${pct}%</span></div>
     </div>`;
   }).join('');
 }
 
-function renderProject() {
-  const proj = data.projects.find(p => p.id === activeId);
-  if (!proj) { showEmpty(); return; }
+function renderProject(){
+  const p=data.projects.find(p=>p.id===active);
+  if(!p){ showEmpty(); return; }
+  document.getElementById('empty').style.display='none';
+  document.getElementById('pview').style.display='block';
+  document.getElementById('v-name').textContent=p.name;
+  document.getElementById('v-desc').textContent=p.desc||'';
+  const {totalSub,doneSub,pct}=projStats(p);
+  const comp=pct===100&&totalSub>0;
+  document.getElementById('s-topics').textContent=p.topics.length;
+  document.getElementById('s-sub').textContent=totalSub;
+  document.getElementById('s-done').textContent=doneSub;
+  document.getElementById('s-pct').textContent=pct+'%';
+  const bf=document.getElementById('big-fill');
+  bf.style.width=pct+'%'; bf.className='big-fill'+(comp?' c':'');
+  const badge=document.getElementById('v-badge');
+  badge.textContent=comp?'complete':'in progress';
+  badge.className='badge '+(comp?'badge-done':'badge-todo');
 
-  document.getElementById('empty-state').style.display = 'none';
-  document.getElementById('project-view').style.display = 'block';
+  const list=document.getElementById('topics-list');
+  const noT=document.getElementById('no-topics');
+  if(!p.topics.length){ list.innerHTML=''; noT.style.display='block'; return; }
+  noT.style.display='none';
 
-  document.getElementById('view-name').textContent = proj.name;
-  document.getElementById('view-desc').textContent = proj.desc || '';
-
-  const total = proj.topics.length;
-  const done = proj.topics.filter(t => t.done).length;
-  const pct = total ? Math.round((done/total)*100) : 0;
-  const complete = pct === 100 && total > 0;
-
-  document.getElementById('stat-total').textContent = total;
-  document.getElementById('stat-done').textContent = done;
-  document.getElementById('stat-pct').textContent = pct + '%';
-  const bar = document.getElementById('big-bar');
-  bar.style.width = pct + '%';
-  bar.className = 'progress-bar-big-fill' + (complete ? ' complete' : '');
-
-  const badge = document.getElementById('view-badge');
-  if (complete) { badge.textContent = 'complete'; badge.className = 'badge badge-done'; }
-  else { badge.textContent = 'in progress'; badge.className = 'badge badge-todo'; }
-
-  const grid = document.getElementById('topics-grid');
-  const noTopics = document.getElementById('no-topics');
-
-  if (!total) {
-    grid.innerHTML = '';
-    noTopics.style.display = 'block';
-    return;
-  }
-  noTopics.style.display = 'none';
-
-  const todo = proj.topics.filter(t => !t.done);
-  const doneList = proj.topics.filter(t => t.done);
-  const ordered = [...todo, ...doneList];
-
-  grid.innerHTML = ordered.map(t => `
-    <div class="topic-card${t.done?' done':''}" onclick="toggleTopic('${t.id}')">
-      <div class="topic-check">
-        <svg class="topic-check-mark" viewBox="0 0 10 8" fill="none">
-          <path d="M1 4l3 3 5-6" stroke="#0e0e0e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
+  list.innerHTML=p.topics.map(t=>{
+    const tp=topicPct(t);
+    const allDone=t.subtopics.length>0&&t.subtopics.every(s=>s.done);
+    const isOpen=openTopics.has(t.id);
+    const doneCount=t.subtopics.filter(s=>s.done).length;
+    return `<div class="topic-block${allDone?' done-block':''}" id="tb-${t.id}">
+      <div class="topic-row" onclick="toggleExpand('${t.id}')">
+        <div class="check" onclick="event.stopPropagation()">
+          <svg class="chk-svg" viewBox="0 0 9 7" fill="none"><path d="M1 3.5l2.5 2.5 4.5-5" stroke="#0e0e0e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="topic-info">
+          <div class="topic-title">${esc(t.name)}</div>
+          ${t.exp?`<div class="topic-sub-count">${esc(t.exp)}</div>`:''}
+          <div class="topic-sub-count" style="margin-top:2px">${doneCount}/${t.subtopics.length} subtopics</div>
+        </div>
+        <div class="topic-right">
+          <span class="topic-pct">${tp}%</span>
+          <button class="expand-btn${isOpen?' open':''}" onclick="event.stopPropagation();toggleExpand('${t.id}')" aria-label="expand">▶</button>
+          <div class="t-actions" onclick="event.stopPropagation()">
+            <button class="btn-del" onclick="delTopic('${t.id}')">✕</button>
+          </div>
+        </div>
       </div>
-      <div class="topic-body">
-        <div class="topic-name">${esc(t.name)}</div>
-        ${t.exp ? `<div class="topic-explanation">${esc(t.exp)}</div>` : ''}
-      </div>
-      <div class="topic-actions">
-        <button class="btn-danger" onclick="event.stopPropagation();deleteTopic('${t.id}')">✕</button>
-      </div>
-    </div>
-  `).join('');
+      ${isOpen?`<div class="subtopics-panel">
+        ${t.subtopics.map(s=>`
+          <div class="sub-item${s.done?' sdone':''}" onclick="toggleSub('${t.id}','${s.id}')">
+            <div class="sub-check">
+              <svg class="sub-chk-svg" viewBox="0 0 7 6" fill="none"><path d="M1 3l2 2 3-4" stroke="#0e0e0e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <span class="sub-name">${esc(s.name)}</span>
+            <button class="sub-del" onclick="event.stopPropagation();delSub('${t.id}','${s.id}')" aria-label="delete">✕</button>
+          </div>`).join('')}
+        <div class="sub-add-row">
+          <input type="text" id="si-${t.id}" placeholder="Add subtopic..." onkeydown="if(event.key==='Enter')addSubtopic('${t.id}')">
+          <button onclick="addSubtopic('${t.id}')">+ Add</button>
+        </div>
+      </div>`:''}
+    </div>`;
+  }).join('');
 }
 
-function showEmpty() {
-  document.getElementById('empty-state').style.display = 'flex';
-  document.getElementById('project-view').style.display = 'none';
+function showEmpty(){
+  document.getElementById('empty').style.display='flex';
+  document.getElementById('pview').style.display='none';
 }
 
-function updateHeader() {
-  document.getElementById('hdr-projects').textContent = data.projects.length;
-  const allTopics = data.projects.flatMap(p => p.topics);
-  document.getElementById('hdr-total').textContent = allTopics.length;
-  document.getElementById('hdr-done').textContent = allTopics.filter(t => t.done).length;
+function updateHeader(){
+  document.getElementById('h-proj').textContent=data.projects.length;
+  let tot=0,dn=0;
+  data.projects.forEach(p=>p.topics.forEach(t=>{ tot+=t.subtopics.length; dn+=t.subtopics.filter(s=>s.done).length; }));
+  document.getElementById('h-total').textContent=tot;
+  document.getElementById('h-done').textContent=dn;
 }
 
-function esc(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
+document.getElementById('pname').addEventListener('keydown',e=>{if(e.key==='Enter')addProject();});
+document.getElementById('tname').addEventListener('keydown',e=>{if(e.key==='Enter')addTopic();});
 
-document.getElementById('proj-name').addEventListener('keydown', e => { if (e.key === 'Enter') addProject(); });
-document.getElementById('topic-name').addEventListener('keydown', e => { if (e.key === 'Enter') addTopic(); });
-
-renderSidebar();
-updateHeader();
-if (data.projects.length) selectProject(data.projects[0].id);
+renderSidebar(); updateHeader();
+if(data.projects.length) selectProject(data.projects[0].id);
 </script>
 </body>
 </html>
